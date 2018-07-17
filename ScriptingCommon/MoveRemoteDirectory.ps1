@@ -13,6 +13,8 @@ function Move-RemoteDirectory
         [Parameter(Mandatory = $true, Position = 3)]
         [string]$Destination,
         [Parameter(Mandatory = $false)]
+        [switch]$Compress,
+        [Parameter(Mandatory = $false)]
         [switch]$Expand
     )
 
@@ -22,12 +24,13 @@ function Move-RemoteDirectory
     $session = New-PSSession -ComputerName $RemoteComputerName
     # Compress and delete.
     Invoke-Command -Session $session -ScriptBlock {
-        Get-ChildItem $using:Path |
-            Compress-Archive -DestinationPath $using:archivePath -Force -Verbose -WhatIf
+        $files = Get-ChildItem $using:Path
+        if($null -eq $files) { $files = $using:Path }
+        $files | Compress-Archive -DestinationPath $using:archivePath -Force -Verbose -WhatIf
         Remove-Item -Path $Path -Recurse -Force -Verbose -WhatIf
     }
 
-    # Copy archive file.
+    # Copy file.
     Copy-Item -$($FromTo)Session $session -Path $archivePath -Destination $Destination -Force -Verbose -WhatIf
 
     # Delete copied archive file.
@@ -36,7 +39,7 @@ function Move-RemoteDirectory
     }
 
     # Expand archive if nesessary.
-    if($Expand)
+    if($Compress -and $Expand)
     {
         $destinationArchivePath = $(Join-Path $Destination $archiveName)
         Expand-Archive -Path $destinationArchivePath -DestinationPath $Destination -Force -Verbose -WhatIf
