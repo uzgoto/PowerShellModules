@@ -1,3 +1,4 @@
+using namespace System.Management.Automation
 using namespace System.Security.Principal
 
 function Main
@@ -8,7 +9,8 @@ function Main
         [Parameter(Mandatory = $true)]
         [string]$ModulePath
     )
-    $ErrorActionPreference = "Stop"
+    Set-StrictMode -Version Latest
+    $ErrorActionPreference = [ActionPreference]::Stop
 
     # This script is placed at root directory.
     $path = (Split-Path $PSCommandPath -Parent)
@@ -20,14 +22,11 @@ function Main
         Write-Warning "$ModulePath not found. creating module path."
         New-Item -Path $ModulePath -ItemType directory -Force -Verbose
     }
-    
-    try
-    {
-        $modulePaths |
-        %{
+
+    try {
+        $modulePaths | ForEach-Object {
             Write-Verbose "Checking Module Path $_ is exist not not."
-            if(Test-Path -Path $_)
-            {
+            if(Test-Path -Path $_) {
                 Write-Warning "$_ is already existed. Skip creating module directory."
                 Remove-Item -Path $_ -Recurse -Force -Verbose -WhatIf
             }
@@ -40,8 +39,7 @@ function Main
             Import-Module -Name $moduleName -Verbose -WhatIf
         }
     }
-    catch
-    {
+    catch {
         exit 1
     }
     exit 0
@@ -55,14 +53,14 @@ filter Get-ModulePaths
         [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline)]
         [string[]]$Paths
     )
-    $Paths |
-    %{
+    $Paths | ForEach-Object
+    {
         if(Test-Path $_)
         {
             $modulePath = Get-ChildItem $_ | Where-Object { $_.Extension -eq ".psm1" }
             if ($null -eq $modulePath)
             {
-                Write-Warning "Module file (.psm1) is not found in ${_}!!"
+                Write-Warning "Module file (.psm1) is not found in {0}!!" -f $_
             }
             else
             {
@@ -71,21 +69,21 @@ filter Get-ModulePaths
         }
         else
         {
-            Write-Warning "Path ($_) is not exist!!"
+            Write-Warning "Path ({0}) is not exist!!" -f $_
         }
     }
 }
 function Test-RunAs
 {
-    $user = [WindowsIdentity]::GetCurrent();
-    return (New-Object WindowsPrincipal $user).IsInRole([WindowsBuiltinRole]::Administrator);
+    $user = [WindowsIdentity]::GetCurrent()
+    return (New-Object WindowsPrincipal $user).IsInRole([WindowsBuiltinRole]::Administrator)
 }
 
 
-if (! (Test-RunAs))
+if (!(Test-RunAs))
 {
-    Write-Host -Object "管理者で起動してください" -ForegroundColor Red;
-    exit 1;
+    Write-Host -Object "管理者で起動してください" -ForegroundColor Red
+    exit 1
 }
 $ModulePath = "$env:ProgramFiles\WindowsPowerShell\Modules"
 Main -Modulepath $ModulePath

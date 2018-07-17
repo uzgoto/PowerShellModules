@@ -3,6 +3,7 @@ function Move-RemoteDirectory
     [CmdletBinding()]
     param
     (
+        # 'From' if copy directory from remote to local.
         [Parameter(Mandatory = $true, Position = 0)]
         [ValidateSet('From', 'To')]$FromTo,
         [Parameter(Mandatory = $true, Position = 1)]
