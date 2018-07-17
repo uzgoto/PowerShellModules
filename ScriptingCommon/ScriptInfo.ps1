@@ -5,7 +5,7 @@ $ErrorActionPreference = [ActionPreference]::Stop
 
 function Get-ScriptFileNameFullPath
 {
-    return $MyInvocation.MyCommand.Name
+    return $Script:MyInvocation.MyCommand.Name
 }
 function Get-ScriptName
 {
@@ -19,17 +19,17 @@ function Get-ScriptCurrentPath
 }
 function Get-ScriptRootPath
 {
-    $root = Get-ScriptCurrentPath
-    while((Split-Path $root -Leaf) -eq 'Scripting')
+    $current = Get-ScriptCurrentPath
+    while((Split-Path $current -Leaf) -ne 'Scripting')
     {
-        $root = Split-Path $root -Parent
-        if([string]::IsNullOrEmpty($root)) { return [string]::Empty }
+        $current = Split-Path $current -Parent
+        if([string]::IsNullOrEmpty($current)) { return [string]::Empty }
     }
-    return $root
+    return $current
 }
 function Get-ScriptLogPath
 {
-    $logName = (Get-Date -Format 'yyyyMMddHHmmss'), (Get-ScriptName), 'log' -join '.\.git'
+    $logName = (Get-Date -Format 'yyyyMMddHHmmss'), (Get-ScriptName), 'log' -join '.'
     $logDirectory = Join-Path (Get-ScriptRootPath) 'Logs'
     return Join-Path $logDirectory $logName
 }
@@ -42,3 +42,12 @@ function Get-CallTimeLogText
     )
     return "=== {0} {1} ===" -f (Get-Date -Format 'yyyy/MM/dd HH:mm:ss.ffffff'), $State
 }
+
+# $functionToExport = @(
+#     'Get-ScriptName',
+#     'Get-ScriptCurrentPath',
+#     'Get-ScriptRootPath',
+#     'Get-ScriptLogPath',
+#     'Get-CallTimeLogText'
+# )
+# Export-ModuleMember -Function $functionToExport -Verbose

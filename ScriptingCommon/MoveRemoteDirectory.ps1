@@ -26,7 +26,7 @@ function Move-RemoteDirectory
             Compress-Archive -DestinationPath $using:archivePath -Force -Verbose -WhatIf
         Remove-Item -Path $Path -Recurse -Force -Verbose -WhatIf
     }
-    
+
     # Copy archive file.
     Copy-Item -$($FromTo)Session $session -Path $archivePath -Destination $Destination -Force -Verbose -WhatIf
 
