@@ -1,16 +1,11 @@
 using namespace System.Management.Automation
-using namespace System.Security.Principal
+Set-StrictMode -Version Latest
+$ErrorActionPreference = [ActionPreference]::Stop
 
 function Main
 {
     [CmdletBinding()]
-    param
-    (
-        [Parameter(Mandatory = $true)]
-        [string]$ModulePath
-    )
-    Set-StrictMode -Version Latest
-    $ErrorActionPreference = [ActionPreference]::Stop
+    param()
 
     # This script is placed at root directory.
     $path = (Split-Path $PSCommandPath -Parent)
@@ -72,18 +67,6 @@ filter Get-ModulePaths
             Write-Warning "Path ({0}) is not exist!!" -f $_
         }
     }
-}
-function Test-RunAs
-{
-    $user = [WindowsIdentity]::GetCurrent()
-    return (New-Object WindowsPrincipal $user).IsInRole([WindowsBuiltinRole]::Administrator)
-}
-
-
-if (!(Test-RunAs))
-{
-    Write-Host -Object "管理者で起動してください" -ForegroundColor Red
-    exit 1
 }
 $ModulePath = "$env:ProgramFiles\WindowsPowerShell\Modules"
 Main -Modulepath $ModulePath

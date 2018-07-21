@@ -1,11 +1,9 @@
-using namespace System.Management.Automation
 using namespace System.IO
 Set-StrictMode -Version Latest
-$ErrorActionPreference = [ActionPreference]::Stop
 
 function Get-ScriptFileNameFullPath
 {
-    return $Script:MyInvocation.MyCommand.Name
+    return $Script:MyInvocation.PSCommandPath
 }
 function Get-ScriptName
 {
@@ -33,21 +31,3 @@ function Get-ScriptLogPath
     $logDirectory = Join-Path (Get-ScriptRootPath) 'Logs'
     return Join-Path $logDirectory $logName
 }
-function Get-CallTimeLogText
-{
-    param
-    (
-        [Parameter(Mandatory = $true)]
-        [ValidateSet('Start', 'End')]$State
-    )
-    return "=== {0} {1} ===" -f (Get-Date -Format 'yyyy/MM/dd HH:mm:ss.ffffff'), $State
-}
-
-# $functionToExport = @(
-#     'Get-ScriptName',
-#     'Get-ScriptCurrentPath',
-#     'Get-ScriptRootPath',
-#     'Get-ScriptLogPath',
-#     'Get-CallTimeLogText'
-# )
-# Export-ModuleMember -Function $functionToExport -Verbose
