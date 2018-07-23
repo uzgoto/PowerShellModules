@@ -2,36 +2,39 @@ using namespace System.Management.Automation
 Set-StrictMode -Version Latest
 $ErrorActionPreference = [ActionPreference]::Stop
 
-function Main
+function Install-LocalModules
 {
     [CmdletBinding()]
     param()
 
-    # This script is placed at root directory.
-    $path = (Split-Path $PSCommandPath -Parent)
-    $modulePaths = Get-ChildItem $path -Directory  | Get-ModulePaths
+    $ModulePath = "$env:ProgramFiles\WindowsPowerShell\Modules"
 
-    Write-Verbose "Checking Module Root Path $ModulePath is exist not not."
-    if(!(Test-Path -Path $ModulePath))
+    $modulePath =
+        Get-ChildItem -LiteralPath $MyInvocation.PSScriptRoot -Directory  |
+        Get-modulePath
+
+    Write-Verbose "Create $ModulePath directory if absent."
+    if(-not(Test-Path -Path $ModulePath))
     {
-        Write-Warning "$ModulePath not found. creating module path."
+        Write-Warning "$ModulePath directory is not found. create directory."
         New-Item -Path $ModulePath -ItemType directory -Force -Verbose
     }
 
     try {
-        $modulePaths | ForEach-Object {
-            Write-Verbose "Checking Module Path $_ is exist not not."
-            if(Test-Path -Path $_) {
-                Write-Warning "$_ is already existed. Skip creating module directory."
-                Remove-Item -Path $_ -Recurse -Force -Verbose -WhatIf
+        $modulePath | ForEach-Object {
+            $moduleName = Split-Path $_ -Leaf
+            Write-Verbose "Remove module $moduleName directory if present."
+            $newModulePath = Join-Path $ModulePath $moduleName
+            if(Test-Path -Path $newModulePath) {
+                Write-Warning "Module directory $moduleName is already existed. Remove this."
+                Remove-Item -Path $newModulePath -Recurse -Force -Verbose
             }
             # Copy Module
-            $moduleName = (Split-Path $_ -Leaf)
-            Write-Host "Copying module $moduleName to Module path $_." -ForegroundColor Cyan
-            Copy-Item -Path $path -Destination $_ -Recurse -Force -Verbose -WhatIf
+            Write-Host "Copy module $moduleName to module path." -ForegroundColor Cyan
+            Copy-Item -Path $_ -Destination $ModulePath -Recurse -Force -Verbose
             # Import Module
-            Write-Host "Importing Module $moduleName" -ForegroundColor Cyan
-            Import-Module -Name $moduleName -Verbose -WhatIf
+            Write-Host "Importe module $moduleName" -ForegroundColor Cyan
+            Import-Module -Name $moduleName -Verbose
         }
     }
     catch {
@@ -39,34 +42,24 @@ function Main
     }
     exit 0
 }
-filter Get-ModulePaths
+filter Get-modulePath
 {
     [OutputType([string[]])]
     [CmdletBinding()]
     param
     (
         [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline)]
-        [string[]]$Paths
+        [string[]]$Path
     )
-    $Paths | ForEach-Object
+
+    $psm1Path = Get-ChildItem -Path $Path -Recurse | Where-Object { $_.Extension -eq ".psm1" }
+    if ($null -eq $psm1Path)
     {
-        if(Test-Path $_)
-        {
-            $modulePath = Get-ChildItem $_ | Where-Object { $_.Extension -eq ".psm1" }
-            if ($null -eq $modulePath)
-            {
-                Write-Warning "Module file (.psm1) is not found in {0}!!" -f $_
-            }
-            else
-            {
-                $(Split-Path $modulePath -Parent)
-            }
-        }
-        else
-        {
-            Write-Warning "Path ({0}) is not exist!!" -f $_
-        }
+        Write-Warning "Module file (.psm1) is not found in $Path!!"
+    }
+    else
+    {
+        $Path
     }
 }
-$ModulePath = "$env:ProgramFiles\WindowsPowerShell\Modules"
-Main -Modulepath $ModulePath
+Install-LocalModules
