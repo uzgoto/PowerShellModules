@@ -7,16 +7,14 @@
             NodeName = 'dbms.sample.com'
             Role = 'dbms'
             SqlServer = @{
-                InstallerPath = 'c:\temp\sqlserver\xxxxxx.exe'
-                ProductKey = 'xxxx-xxxx-xxxx-xxxx-xxxx'
+                InstallerPath = 'c:\temp\'
                 UpdateEnabled = $false
                 Features = @(
                     'SQLEngine'
                     'Conn'
-                    'SDK'
                 )
-                SharedFeaturePath = '{0}\Microsoft SQL Server' -f $env:ProgramFiles
-                SharedFeature86Path = '{0}\Microsoft SQL Server' -f $env:ProgramW6432
+                SharedFeaturePath = '{0}\Microsoft SQL Server\' -f $env:ProgramFiles
+                SharedFeature86Path = '{0}\Microsoft SQL Server\' -f ${env:ProgramFiles(x86)}
             }
             Instances = @(
                 @{
