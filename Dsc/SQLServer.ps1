@@ -39,7 +39,7 @@ Configuration SQLInstall
                 InstallSQLDataDir = $instance.DataDir
                 SQLUserDBDir = $instance.UserDBDir
                 SQLUserDBLogDir = $instance.UserDBLogDir
-                SQLTempDBDir = $instance.TempDBDirs -join ' '
+                SQLTempDBDir = $instance.TempDBDir
                 SQLTempDBLogDir = $instance.TempDBLogDir
                 SQLBackupDir = $instance.BackupDir
     
@@ -117,30 +117,12 @@ Configuration SQLInstall
                     }
                 }
     
-                SqlDatabasePermission "Database$($database.Name)Of$($Node.InstanceName)"
-                {
-                    Ensure = 'Present'
-                    ServerName = $Node.ServerName
-                    InstanceName = $Node.InstanceName
-                    Database = $database.Name
-                    Name = $database.Permission.User
-                    PermissionState = 'Grant'
-                    # See https://docs.microsoft.com/ja-jp/sql/relational-databases/security/permissions-database-engine?view=sql-server-2016
-                    Permissions = $database.Permission
-                }
-    
                 SqlDatabaseRecoveryModel "Database$($database.Name)Of$($Node.InstanceName)"
                 {
                     ServerName = $Node.ServerName
                     InstanceName = $Node.InstanceName
                     Name = $database.Name
                     RecoveryModel = $database.RecoveryModel
-                }
-    
-                SqlDatabaseRole "DatabaseRole$($database.Name)Of$($Node.InstanaceName)"
-                {
-                    Ensure = 'Present'
-                    ServerName = 
                 }
             }
         }
